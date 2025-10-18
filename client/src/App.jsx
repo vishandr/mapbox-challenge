@@ -59,6 +59,25 @@ function App() {
     }
   };
 
+  const handleMarkerDelete = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:4000/markers/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Ошибка при удалении');
+
+      // Убираем маркер с карты (его нужно удалить вручную)
+      const markerToRemove = markers.find((m) => m.id === id);
+      if (markerToRemove?.instance) markerToRemove.instance.remove();
+
+      // Обновляем состояние
+      setMarkers((prev) => prev.filter((m) => m.id !== id));
+    } catch (err) {
+      alert('❌ ' + err.message);
+    }
+  };
+
   useEffect(() => {
     if (map.current) return; // карта уже инициализирована
 
@@ -76,12 +95,24 @@ function App() {
       .then((data) => {
         setMarkers(data);
         data.forEach((m) =>
-          createMarker(map.current, m, handleMarkerScoreChange, getColorByScore)
+          createMarker(
+            map.current,
+            m,
+            handleMarkerScoreChange,
+            getColorByScore,
+            handleMarkerDelete
+          )
         );
       });
 
     // добавление нового маркера по клику
     map.current.on('click', async (e) => {
+      if (
+        e.originalEvent.target.closest('.mapboxgl-marker') ||
+        e.originalEvent.target.closest('.mapboxgl-popup')
+      ) {
+        return;
+      }
       const score = 0; // по умолчанию = 0
       // const score = Math.floor(Math.random() * 6); // случайный от 0 до 5
       const lng = e.lngLat.lng;
@@ -104,7 +135,8 @@ function App() {
           map.current,
           markerData,
           handleMarkerScoreChange,
-          getColorByScore
+          getColorByScore,
+          handleMarkerDelete
         );
         setMarkers((prev) => [...prev, markerData]);
       } catch (err) {
