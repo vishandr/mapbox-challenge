@@ -6,7 +6,8 @@ export default function createMarker(
   { id, lng, lat, score },
   onScoreChange,
   getColorByScore,
-  onDelete
+  onDelete,
+  onMove
 ) {
   const el = document.createElement('div');
   el.style.backgroundColor = getColorByScore(score);
@@ -15,6 +16,7 @@ export default function createMarker(
   el.style.borderRadius = '50%';
   el.style.border = '2px solid white';
   el.style.cursor = 'pointer';
+  el.style.pointerEvents = 'auto';
 
   const popup = new mapboxgl.Popup({ offset: 25 });
 
@@ -29,16 +31,35 @@ export default function createMarker(
 
   popup.setDOMContent(popupContent);
 
-  const marker = new mapboxgl.Marker(el)
+  const marker = new mapboxgl.Marker({ element: el, draggable: true })
     .setPopup(popup)
     .setLngLat([lng, lat])
     .addTo(map);
 
+  marker.on('dragstart', () => (el.style.opacity = '0.6'));
+  marker.on('dragend', () => (el.style.opacity = '1'));
+
+  marker.on('dragend', async () => {
+    const { lng, lat } = marker.getLngLat();
+    try {
+      const res = await fetch(`http://localhost:4000/markers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lng, lat }),
+      });
+      if (!res.ok) throw new Error('Ошибка при обновлении');
+      const updated = await res.json();
+      console.log('✅ Маркер перемещён:', updated);
+      if (onMove) onMove(id, lng, lat);
+    } catch (err) {
+      console.error('Ошибка:', err);
+      alert('⚠️ Не удалось сохранить новую позицию' + err.message);
+    }
+  });
+
   const incBtn = popupContent.querySelector(`#inc-${id}`);
   const delBtn = popupContent.querySelector(`#del-${id}`);
-  const scoreText = popupContent.querySelector('.score-text');
 
-  el.addEventListener('mousedown', (e) => e.stopPropagation());
   popupContent.addEventListener('click', (e) => e.stopPropagation());
 
   // ⚙️ Обработчики внутри popup

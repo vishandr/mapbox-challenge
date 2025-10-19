@@ -3,7 +3,6 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './App.css';
 import createMarker from './components/Marker';
-// import { createRoot } from 'react-dom/client';
 
 function App() {
   const mapContainer = useRef(null);
@@ -78,6 +77,12 @@ function App() {
     }
   };
 
+  const handleMarkerMove = (id, newLng, newLat) => {
+    setMarkers((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, lng: newLng, lat: newLat } : m))
+    );
+  };
+
   useEffect(() => {
     if (map.current) return; // карта уже инициализирована
 
@@ -85,8 +90,9 @@ function App() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v11',
-      center: [30.5234, 50.4501], // Киев как стартовая позиция
-      zoom: 10,
+      center: [30.743, 46.4778],
+      // center: [30.5234, 50.4501],
+      zoom: 14,
     });
 
     // загрузим маркеры с сервера
@@ -100,7 +106,8 @@ function App() {
             m,
             handleMarkerScoreChange,
             getColorByScore,
-            handleMarkerDelete
+            handleMarkerDelete,
+            handleMarkerMove
           )
         );
       });
@@ -136,7 +143,8 @@ function App() {
           markerData,
           handleMarkerScoreChange,
           getColorByScore,
-          handleMarkerDelete
+          handleMarkerDelete,
+          handleMarkerMove
         );
         setMarkers((prev) => [...prev, markerData]);
       } catch (err) {

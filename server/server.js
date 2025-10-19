@@ -38,7 +38,6 @@ app.post('/markers', (req, res) => {
 // обновить
 app.put('/markers/:id', (req, res) => {
   const id = req.params.id;
-  // console.log('Updating marker with id:', id);
   const idx = markers.findIndex((m) => m.id === id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   Object.assign(markers[idx], req.body);
