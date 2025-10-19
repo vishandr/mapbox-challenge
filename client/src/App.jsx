@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './App.css';
 import createMarker from './components/Marker';
+import MarkerStats from './components/MarkerStats';
 
 function App() {
   const mapContainer = useRef(null);
@@ -153,7 +154,20 @@ function App() {
     });
   }, [MAPBOX_TOKEN]);
 
-  return <div ref={mapContainer} style={{ width: '100vw', height: '100vh' }} />;
+  return (
+    <>
+      <div
+        ref={mapContainer}
+        style={{
+          width: '100vw',
+          height: '100vh',
+          position: 'relative',
+          // overflow: 'hidden',
+        }}
+      />
+      <MarkerStats markers={markers} />
+    </>
+  );
 }
 
 export default App;
