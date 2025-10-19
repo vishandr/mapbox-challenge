@@ -91,6 +91,7 @@ function App() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v11',
+      // center: [34.79492, 32.0727773],
       center: [30.743, 46.4778],
       // center: [30.5234, 50.4501],
       zoom: 14,
