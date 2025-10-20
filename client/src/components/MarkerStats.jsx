@@ -1,79 +1,26 @@
 //client/src/components/MarkerStats.jsx
 import { useState } from 'react';
+import { summarizeByScore } from '../utils/score';
+import { importMarkersApi } from '../services/api';
 import ImportMarkersButton from './ImportMarkersButton';
+import ExportMarkersButton from './ExportMarkersButton';
 
 export default function MarkerStats({ markers }) {
   const [showList, setShowList] = useState(false);
 
-  //export markers to json file
-  const exportMarkers = () => {
-    const markersJson = JSON.stringify(markers, null, 2);
-    // fs.writeFileSync('markers.json', markersJson);
-    const blob = new Blob([markersJson], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'markers.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  // export handled by ExportMarkersButton
 
   // import markers from json file
   const handleImport = async (data) => {
     try {
-      const res = await fetch('http://localhost:4000/markers/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) throw new Error('Ошибка при импорте');
-
-      const imported = await res.json();
-      alert(`✅ Импортировано ${imported.message}`);
+      const imported = await importMarkersApi(data);
+      alert(`✅ Imported ${imported.message}`);
     } catch (err) {
       alert('❌ ' + err.message);
     }
   };
 
-  // Calculate score counts
-  const scoreCounts = markers.reduce((acc, marker) => {
-    const score = marker.score;
-    acc[score] = (acc[score] || 0) + 1;
-    return acc;
-  }, {});
-
-  // Color mapping for scores
-  const scoreColors = {
-    0: 'black',
-    1: 'gray',
-    2: 'red',
-    3: 'orange',
-    4: 'lime',
-    5: 'green',
-  };
-
-  // Get all possible scores (0-5) and their counts
-  const scoreSummary = [];
-  for (let i = 5; i >= 0; i--) {
-    scoreSummary.push({
-      score: i,
-      count: scoreCounts[i] || 0,
-      label:
-        i === 5
-          ? 'Five'
-          : i === 4
-          ? 'Four'
-          : i === 3
-          ? 'Three'
-          : i === 2
-          ? 'Two'
-          : i === 1
-          ? 'One'
-          : 'Zero',
-      color: scoreColors[i],
-    });
-  }
+  const scoreSummary = summarizeByScore(markers);
 
   return (
     <div
@@ -100,7 +47,7 @@ export default function MarkerStats({ markers }) {
         onClick={() => setShowList((s) => !s)}
       >
         <span>
-          Маркеров: <strong>{markers.length}</strong>
+          Markers: <strong>{markers.length}</strong>
         </span>
         <span style={{ fontSize: '18px' }}>{showList ? '▲' : '▼'}</span>
       </div>
@@ -115,7 +62,7 @@ export default function MarkerStats({ markers }) {
             paddingTop: '6px',
           }}
         >
-          {markers.length === 0 && <p style={{ margin: 0 }}>Нет данных</p>}
+          {markers.length === 0 && <p style={{ margin: 0 }}>No data</p>}
           {markers.length > 0 && (
             <>
               <div
@@ -131,19 +78,7 @@ export default function MarkerStats({ markers }) {
                 <span>{markers.length}</span>
               </div>
               <div>
-                <button
-                  onClick={exportMarkers}
-                  style={{
-                    marginTop: '6px',
-                    padding: '4px 10px',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    borderBottom: '1px solid #ddd',
-                    borderRadius: '5px',
-                  }}
-                >
-                  💾 Export JSON
-                </button>
+                <ExportMarkersButton markers={markers} />
                 <br></br>
                 <ImportMarkersButton onImport={handleImport} />
               </div>
