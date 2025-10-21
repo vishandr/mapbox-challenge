@@ -9,6 +9,8 @@ export default function createMarker(
   onDelete,
   onMove
 ) {
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
   const el = document.createElement('div');
   el.style.backgroundColor = getColorByScore(score);
   el.style.width = '20px';
@@ -42,7 +44,7 @@ export default function createMarker(
   marker.on('dragend', async () => {
     const { lng, lat } = marker.getLngLat();
     try {
-      const res = await fetch(`http://localhost:4000/markers/${id}`, {
+      const res = await fetch(`${BASE_URL}/markers/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lng, lat }),
