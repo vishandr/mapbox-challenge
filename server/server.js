@@ -95,5 +95,5 @@ app.use(express.static(path.join(__dirname, 'public')));
 //   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 // });
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
